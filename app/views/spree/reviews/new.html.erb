@@ -1,2 +1,82 @@
-<%= content_tag :h3, Spree.t(:leave_us_a_review_for, name: @product.name), class: 'new-review-title' %>
-<%= render 'form', review: @review, product: @product %>
+<section class="search-results">
+  <div class="bg--weed-images">
+    <div class="container">
+      <div class="new-review">
+        <% if @current_user_review.present? %>
+          <h3>
+            <span class='icon icon--weed text--green text--larger'></span>
+            <span class='text--white'>You have already reviewed this product</span>
+          </h3>
+          <div class='grid grid--bottom push-double--bottom'>
+            <div class='grid__item medium--three-eighths'>
+              <% if @product.images.length == 0 %>
+                <%= product_image(@product) %>
+              <% else %>
+                <%= image_tag(@product.images.first.attachment.url(:product)) %>
+              <% end %>
+            </div>
+            <div class='grid__item medium--five-eighths'>
+              <p class='text--large letter-spacing-title text--white flush--bottom'><%= @product.name %></p>
+              <p class='letter-spacing-text text--green push--bottom'><%= "By #{@product.farm.title}" if @product.farm.present? %></p>
+              <p class='rate__stars'>
+                <span class='text--large'>
+                  <span class='icon icon--star <%= "is-active" if @current_user_review.rating >= 1 %>'></span>
+                  <span class='icon icon--star <%= "is-active" if @current_user_review.rating >= 2 %>'></span>
+                  <span class='icon icon--star <%= "is-active" if @current_user_review.rating >= 3 %>'></span>
+                  <span class='icon icon--star <%= "is-active" if @current_user_review.rating >= 4 %>'></span>
+                  <span class='icon icon--star <%= "is-active" if @current_user_review.rating == 5 %>'></span>
+                </span>
+              </p>
+              <p class='rate__comment'><%= simple_format(@current_user_review.review) %></p>
+              <p class='text--green-dark text--small rate__author'>
+                <i>Published <%= time_ago_in_words(@current_user_review.created_at) %> ago</i>
+              </p>
+            </div>
+          </div>
+        <% else %>
+          <h3>
+            <span class='icon icon--weed text--green text--larger'></span>
+            <span class='text--white'>Write a review</span>
+          </h3>
+          <%= form_for @review, url: product_reviews_path(@product), html: { method: :post } do |f| %>
+            <div class='grid grid--bottom push-double--bottom'>
+              <div class='grid__item medium--three-eighths'>
+                <% if @product.images.length == 0 %>
+                  <%= product_image(@product) %>
+                <% else %>
+                  <%= image_tag(@product.images.first.attachment.url(:product)) %>
+                <% end %>
+              </div>
+              <div class='grid__item medium--five-eighths'>
+                <p class='text--large letter-spacing-title text--white flush--bottom'><%= @product.name %></p>
+                <p class='letter-spacing-text text--green push--bottom'><%= "By #{@product.farm.title}" if @product.farm.present? %></p>
+                <div class='rating'>
+                  <input id='star__5' name='review[rating]' type='radio' value='5 stars'>
+                  <label for='star__5'></label>
+                  <input id='star__4' name='review[rating]' type='radio' value='4 stars'>
+                  <label for='star__4'></label>
+                  <input id='star__3' name='review[rating]' type='radio' value='3 stars'>
+                  <label for='star__3'></label>
+                  <input id='star__2' name='review[rating]' type='radio' value='2 stars'>
+                  <label for='star__2'></label>
+                  <input id='star__1' name='review[rating]' type='radio' value='1 stars'>
+                  <label for='star__1'></label>
+                </div>
+                <p class='alert-error'><%= show_errors(@review, :rating) %></p>
+              </div>
+            </div>
+            <div class='push-half--bottom'>
+              <%= f.text_field :title, maxlength: 255, size: 25, class: 'form-control text--green letter-spacing-text', placeholder: 'Share your experience' %>
+              <p class='alert-error'><%= show_errors(@review, :title) %></p>
+              <%= f.text_area :review, rows: 5, class: 'form-control text--grey-darker letter-spacing-text line-height--small', placeholder: 'What should others know about this before buying?' %>
+              <p class='alert-error'><%= show_errors(@review, :review) %></p>
+            </div>
+            <%= hidden_field_tag :product_slug, @product.slug %>
+            <%= f.hidden_field :name, value: (spree_current_user.firstname || spree_current_user.email.split('@').first), maxlength: 255, size: 50, class: 'form-control' %>
+            <div class="text-center"> <%= f.submit Spree.t(:submit_your_review), class: 'button button--primary button-mobile--full', data: { disable_with: "Please wait..." } %></div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</section>

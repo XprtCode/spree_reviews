@@ -3,10 +3,12 @@ class Spree::Review < ActiveRecord::Base
   belongs_to :user, class_name: Spree.user_class.to_s
   has_many   :feedback_reviews
 
-  after_save :recalculate_product_rating, if: :approved?
+  after_save :recalculate_product_rating #, if: :approved?
   after_destroy :recalculate_product_rating
 
-  validates :name, :review, presence: true
+  validates :name, presence: true
+  # validates :title, presence: { message: 'Please provide a title' }
+  # validates :review, presence: { message: 'Please write a comment' }
   validates :rating, numericality: {
     only_integer: true,
     greater_than_or_equal_to: 1,
@@ -19,7 +21,7 @@ class Spree::Review < ActiveRecord::Base
   scope :localized, ->(lc) { where('spree_reviews.locale = ?', lc) }
   scope :most_recent_first, -> { order('spree_reviews.created_at DESC') }
   scope :oldest_first, -> { reorder('spree_reviews.created_at ASC') }
-  scope :preview, -> { limit(Spree::Reviews::Config[:preview_size]).oldest_first }
+  scope :preview, -> { limit(Spree::Reviews::Config[:preview_size]).most_recent_first }
   scope :approved, -> { where(approved: true) }
   scope :not_approved, -> { where(approved: false) }
   scope :default_approval_filter, -> { Spree::Reviews::Config[:include_unapproved_reviews] ? all : approved }

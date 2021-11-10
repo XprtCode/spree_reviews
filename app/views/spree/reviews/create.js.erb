@@ -1,0 +1,10 @@
+<% if @review.errors.present? %>
+  $('#review_block_<%= @product.id %>').replaceWith('<%= escape_javascript render("spree/reviews/rating_modal_item", product: @product) %>');
+  $('input[type=radio].star').rating();
+<% else %>
+  $('#review_block_<%= @product.id %>').remove();
+  if($('.product-review-item').length == 0) {
+    $('#myRatingModal')[0].click();
+    $('#rating_modal').hide();
+  }
+<% end %>

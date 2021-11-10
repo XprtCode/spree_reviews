@@ -8,11 +8,13 @@ class Spree::ReviewsController < Spree::StoreController
   end
 
   def new
-    @review = Spree::Review.new(product: @product)
+    @current_user_review = if spree_current_user.present?
+                            spree_current_user.reviews.find_by(product_id: @product.id)
+                          end
+    @review             = Spree::Review.new(product: @product)
     authorize! :create, @review
   end
 
-  # save if all ok
   def create
     params[:review][:rating].sub!(/\s*[^0-9]*\z/, '') unless params[:review][:rating].blank?
 
@@ -23,11 +25,18 @@ class Spree::ReviewsController < Spree::StoreController
     @review.locale = I18n.locale.to_s if Spree::Reviews::Config[:track_locale]
 
     authorize! :create, @review
-    if @review.save
-      flash[:notice] = Spree.t(:review_successfully_submitted)
-      redirect_to spree.product_path(@product)
-    else
-      render :new
+
+    respond_to do |format|
+      if @review.save
+        format.html do
+          flash[:notice] = Spree.t(:review_successfully_submitted)
+          redirect_to spree.product_path(@product)
+        end
+        format.js
+      else
+        format.html { render :new }
+        format.js
+      end
     end
   end
 

@@ -1,29 +1,22 @@
-<div class="review" itemprop="reviews" itemscope itemtype="http://schema.org/Review">
-  <span class="reviews-rating" title="<%= txt_stars(review.rating) %>">
-    <%= render 'spree/reviews/stars', stars: review.rating %>
-  </span>
-  <span itemprop="name"><%= review.title %></span>
-  <br/>
-  <span class="attribution"><%= Spree.t(:submitted_on) %>
-    <strong><%= l review.created_at.to_date %></strong>
-  </span>
-  <span itemprop="datePublished" content="<%= review.created_at.to_date.to_s %>"></span>
-  <span itemprop="reviewRating" content="<%= review.rating %>"></span>
-  <% if review.show_identifier %>
-    <% if Spree::Reviews::Config[:show_email] && review.user %>
-      <span itemprop="author"><%= review.user.email %></span>
-    <% else %>
-      <span itemprop="author"><%= review.name %></span>
-    <% end %>
-  <% else %>
-    <span itemprop="author"><%= Spree.t(:anonymous) %></span>
-  <% end %>
-  <div itemprop="reviewBody">
-    <%= simple_format(review.review) %>
+<% @reviews.each do |review| %>
+  <div class='rate'>
+    <p class='rate__stars'>
+      <span class='text--large'>
+        <span class='icon icon--star <%= "is-active" if review.rating >= 1 %>'></span>
+        <span class='icon icon--star <%= "is-active" if review.rating >= 2 %>'></span>
+        <span class='icon icon--star <%= "is-active" if review.rating >= 3 %>'></span>
+        <span class='icon icon--star <%= "is-active" if review.rating >= 4 %>'></span>
+        <span class='icon icon--star <%= "is-active" if review.rating == 5 %>'></span>
+      </span>
+    </p>
+    <p class='rate__comment'><%= simple_format(review.review) %></p>
+    <p class='text--green-dark text--small rate__author'>
+      <i>Published <%= time_ago_in_words(review.created_at) %> ago by <%= review.name %></i>
+    </p>
   </div>
-  <% if Spree::Reviews::Config[:feedback_rating] && (!Spree::Reviews::Config[:require_login] || spree_current_user) %>
-    <div class="feedback_review" id="feedback_review_<%= review.id %>">
-      <%= render 'spree/feedback_reviews/form', review: review %>
-    </div>
-  <% end %>
-</div>
+<% end %>
+
+<% unless @reviews.last_page? %>
+  <%- url = main_app.review_infinite_product_path(@product, page: ((params[:page].to_i + 1 if params[:page]) || 2)) %>
+  <div ic-append-from="<%= url %>" ic-target='.infiniteReviews' ic-include=".pageHolder:last-of-type" ic-trigger-on='scrolled-into-view' ic-indicator="#review_indicator"></div>
+<% end %>
